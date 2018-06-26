@@ -178,10 +178,10 @@
 </head>
 <body>
 	<div id="root" class="container">
-		<div class="m-artical-action">
+		<div class="m-artical-action" style="display:none">
 			<div class="artical-action-middle" id="action_mid"></div>
 		</div>
-		<div id="top-nav" class="top-nav">
+		<div id="top_nav" class="top-nav">
 			<div class="icon-back"></div>
 			<div class="nav-title">返回书架</div>
 		</div>
@@ -207,8 +207,8 @@
 				<li id="next_button">下一章</li>
 			</ul>
 		</div>
-		<div class="nav-pannel-bk"></div>
-		<div class="nav-pannel" id="font-container">
+		<div class="nav-pannel-bk" style="display:none"></div>
+		<div class="nav-pannel" id="font-container" style="display:none">
 			<div class="child-mod">
 				<span>字号</span>
 				<button id="large-button" class="font-size-button">大</button>
@@ -230,9 +230,9 @@
 				</div>
 			</div>
 		</div>
-		<div class="bottom-nav-bk bottom_nav"></div>
-		<div class="bottom-nav bottom_nav">
-			<div class="item menu-button" id="menu_button">
+		<div class="bottom-nav-bk bottom_nav" style="display:none"></div>
+		<div class="bottom-nav bottom_nav" style="display:none">
+			<div class="item menu-button" id="menu_button" style="display:none">
 				<div class="item-warp">
 					<div class="icon-menu"></div>
 					<div class="icon-text1">目录</div>
@@ -263,21 +263,25 @@
 	</script>
 	<script src="js/jQuery.Base64.js"></script>
 	<script src="js/jQuery.jsonp.js"></script>
-	<!-- <script>
+	<script>
+		// 封装storageGetter和storageSetter函数，存储上的支持
 		(function(){
 			var Util = (function(){
 				var prefix = 'html5_reader_';
 				var StorageGetter = function(key){
+					// localStorage中使用getItem和setItem来获取和设置值，主要是因为容易控制，便于动态绑定，尤其在函数抽离和重构中，
 					return localStorage.getItem(prefix + key);
 				}
 				var StorageSetter = function(key,val){
 					return localStorage.setItem(prefix + key,val);
 				}
+				// 将函数暴露出去
 				return {
 					StorageGetter:StorageGetter,
 					StorageSetter:StorageSetter
 				}
 			})();
+
 			var Dom = {
 				top_nav:$('#top_nav'),
 				bottom_nav:$('.bottom_nav'),
@@ -297,9 +301,9 @@
 			}
 
 			function EventHanlder(){
-				//todo 交互的事件绑定
+				// todo 交互的事件绑定
 				$('#action_mid').click(function(){
-					if(Dom.top_nav.css(('display') == 'none')){
+					if(Dom.top_nav.css('display' == 'none')){
 						Dom.bottom_nav.show();
 						Dom.top_nav.show();
 					}else{
@@ -318,6 +322,6 @@
             }
 			main();
 		})();
-	</script> -->
+	</script>
 </body>
 </html>
