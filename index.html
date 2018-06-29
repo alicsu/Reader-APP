@@ -155,6 +155,15 @@
 				//todo 实现和阅读器相关的数据交互的方法
 				// 首先定义章节列表信息，定义接口
 				var Chapter_id;
+				// 初始化函数
+				var init = function(){
+					getFictionInfo(function(){
+						getCurChapterContent(Chapter_id,function{
+							//todo...
+
+						})
+					})
+				}
 				var init = function(){
 					getFictionInfo(function(){
 						getChapterContent(Chapter_id)
@@ -164,7 +173,7 @@
 					$.get('/data/chapter.json',function(){
 						//todo 获得章节信息之后的回调
 						// 获取章节的id，再根据id来获取章节的内容
-						Chapter_id = data.chapters[0].chapter_id;
+						Chapter_id = data.chapters[1].chapter_id;
 						callback && callback();
 					},'json');
 				}
