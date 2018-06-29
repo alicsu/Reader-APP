@@ -107,10 +107,13 @@
 				var StorageSetter = function(key,val){
 					return localStorage.setItem(prefix + key,val);
 				}
+				// 获得加密后的json的数据
 				var getBSONP = function(url,callback){
+					// 直接调用插件已经定义的方法
 					return $.jsonp({
 						url:url,
 						cache:true,
+						// 将jsonp代码当成js代码返回，
 						callback:'duokan_fiction_chapter',
 						success:function(result){
 							var data = $.base64.decode(result);
@@ -150,6 +153,7 @@
 			}
 			function ReaderModel(){
 				//todo 实现和阅读器相关的数据交互的方法
+				// 首先定义章节列表信息，定义接口
 				var Chapter_id;
 				var init = function(){
 					getFictionInfo(function(){
@@ -159,12 +163,15 @@
 				var getFictionInfo = function(callback){
 					$.get('/data/chapter.json',function(){
 						//todo 获得章节信息之后的回调
+						// 获取章节的id，再根据id来获取章节的内容
 						Chapter_id = data.chapters[0].chapter_id;
 						callback && callback();
 					},'json');
 				}
+				// 定义获取章节内容的函数
 				var getCurChapterContent = function(chapter_id,data){
 					$.get('data/data' + chapter_id + '.json',function(data){
+						// 判断服务器的状态
 						if(data.result == 0){
 							var url = data.jsonp;
 							Util.getBSONP(url,function(data){
