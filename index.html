@@ -98,6 +98,7 @@
 	<script>
 		// 封装storageGetter和storageSetter函数，存储上的支持
 		(function(){
+			'use strict';  //必须添加该语句才能使用ES6方法，否则会报错
 			var Util = (function(){
 				var prefix = 'html5_reader_';
 				var StorageGetter = function(key){
@@ -163,14 +164,23 @@
 				// 初始化函数
 				var ChapterTotal;
 				var init = function(UIcallback){
-					getFictionInfo(function(){
+					/*getFictionInfo(function(){
 						getCurChapterContent(Chapter_id，function(data){
 							UIcallback && UIcallback();
 						});
 					})
+					*/
+					getFictionInfoPromise.then(function(d){
+						// getCurChapterContent(Chapter_id，function(data){
+						// 	UIcallback && UIcallback();
+						// });
+						return getCurChapterContentPromise.then(function(data){
+							UIcallback && UIcallback(data);
+						});
+					});
 				}
 				var getFictionInfo = function(callback){
-					$.get('/data/chapter.json',function(){
+					$.get('/data/chapter.json',function(data){
 						//todo 获得章节信息之后的回调
 						// 获取章节的id，再根据id来获取章节的内容
 						Chapter_id = Util.StorageGetter('last_chapter_id');
@@ -180,6 +190,24 @@
 						ChapterTotal = data.chapters.length;
 						callback && callback();
 					},'json');
+				}
+
+				// 使用promise方法，其中定义两个参数，分别对应成功和失败的回调
+				var getFictionInfoPromise = function() {
+					return new Promise(function(resovle,reject){
+					$.get('/data/chapter.json',function(data){
+						if(fata.result == 0){
+							Chapter_id = Util.StorageGetter('last_chapter_id');
+						    if(Chapter_id == null){
+							    Chapter_id = data.chapters[1].chapter_id;
+						}
+						ChapterTotal = data.chapters.length;
+						resolve();
+					}else {
+						reject();
+					}
+					},'json');
+				});
 				}
 				// 定义获取章节内容的函数
 				var getCurChapterContent = function(chapter_id,callback){
@@ -193,6 +221,21 @@
 						}
 					},'json')
 				}
+				var getCurChapterContentPromise = function(){
+					return new Promise(function(resolve,reject){
+					$.get('data/data' + Chapter_id + '.json',function(data){
+						// 判断服务器的状态
+						if(data.result == 0){
+							var url = data.jsonp;
+							Util.getBSONP(url,function(data){
+								resolve(data);
+							});
+						} else{
+							reject({msg:'fail'})
+						}
+					},'json');
+				});
+			}
 				var prevChapter = function(UIcallback){
 					chapter_id = parseInt(Chapter_id,10);
 					if(Chapter_id == 0){
