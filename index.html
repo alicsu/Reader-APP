@@ -173,7 +173,10 @@
 					$.get('/data/chapter.json',function(){
 						//todo 获得章节信息之后的回调
 						// 获取章节的id，再根据id来获取章节的内容
-						Chapter_id = data.chapters[1].chapter_id;
+						Chapter_id = Util.StorageGetter('last_chapter_id');
+						if(Chapter_id == null){
+							Chapter_id = data.chapters[1].chapter_id;
+						}
 						ChapterTotal = data.chapters.length;
 						callback && callback();
 					},'json');
@@ -197,6 +200,7 @@
 					}
 					Chapter_id -= 1;
 					getCurChapterContent(Chapter_id,UIcallback);
+					Util.StorageSetter('last_chapter_id',Chapter_id);
 				}
 				var nextChapter = function(UIcallback){
 					chapter_id = parseInt(Chapter_id,10);
@@ -205,6 +209,7 @@
 					}
 					Chapter_id += 1;
 					getCurChapterContent(Chapter_id,UIcallback);
+					Util.StorageSetter('last_chapter_id',Chapter_id);
 				}
 				return {
 					init:init,
@@ -277,7 +282,7 @@
                 });
                 $("#prev_button").click(function(){
                 	//获得章节的翻页数据->把数据拿出来渲染
-                	readerModel.prevCapter();
+                	readerModel.prevCapter(function(data){readerUI(data)});
                 });
                 $("next_button").click(function(){
                 	readerModel.nextChapter(function(data){readerUI(data)});
