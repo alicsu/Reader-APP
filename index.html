@@ -19,7 +19,7 @@
 		</div>
 		<div id="fiction_chapter_title"></div>
 		<div id="fiction_container" class="m-read-content">
-			<h4>小说</h4>
+			<!-- <h4>小说</h4>
 			<p>
 				人物、情节、环境是小说的三要素。情节一般包括开端、发展、高潮、结局四部分，有的包括序幕、尾声。环境包括自然环境和社会环境。 小说按照篇幅及容量可分为长篇、中篇、短篇和微型小说（小小说）。按照表现的内容可分为神话、科幻、公案、传奇、武侠、言情、同人、官宦、耽美等。按照体制可分为章回体小说、日记体小说、书信体小说、自传体小说。按照语言形式可分为文言小说和白话小说
 			</p>
@@ -31,7 +31,7 @@
 			</p>
 			<p>
 				人物、情节、环境是小说的三要素。情节一般包括开端、发展、高潮、结局四部分，有的包括序幕、尾声。环境包括自然环境和社会环境。 小说按照篇幅及容量可分为长篇、中篇、短篇和微型小说（小小说）。按照表现的内容可分为神话、科幻、公案、传奇、武侠、言情、同人、官宦、耽美等。按照体制可分为章回体小说、日记体小说、书信体小说、自传体小说。按照语言形式可分为文言小说和白话小说
-			</p>
+			</p> -->
 		</div>
 		<div class="m-button-bar">
 			<ul class="u-tab">
@@ -118,7 +118,7 @@
 						success:function(result){
 							var data = $.base64.decode(result);
 							var json = decodeURIComponent(escape(data));
-							callback(data);
+							callback(json);
 						}
 					})
 				}
@@ -138,6 +138,8 @@
 			}
 			var Win = $(window);
 			var Doc = $(document);
+			var readerModel;
+			var readerUI;
 			var RootContainer = $('#fiction_container');
 			var initFontSize = Util.StorageGetter('font_size');
 			initFontSize = parseInt(initFontSize);
@@ -147,8 +149,11 @@
 			RootContainer.css('font-size',initFontSize)
 			function main(){
 				//todo 整个项目的入口函数
-				var readerModel = ReaderModel();
-				readerModel.init();
+			    readerModel = ReaderModel();
+				readerUI = ReaderBaseFrame(RootContainer);
+				readerModel.init(function(data){
+					readerUI(data);
+				}); 
 				EventHanlder();
 			}
 			function ReaderModel(){
@@ -156,17 +161,12 @@
 				// 首先定义章节列表信息，定义接口
 				var Chapter_id;
 				// 初始化函数
-				var init = function(){
+				var ChapterTotal;
+				var init = function(UIcallback){
 					getFictionInfo(function(){
-						getCurChapterContent(Chapter_id,function{
-							//todo...
-
-						})
-					})
-				}
-				var init = function(){
-					getFictionInfo(function(){
-						getChapterContent(Chapter_id)
+						getCurChapterContent(Chapter_id，function(data){
+							UIcallback && UIcallback();
+						});
 					})
 				}
 				var getFictionInfo = function(callback){
@@ -174,11 +174,12 @@
 						//todo 获得章节信息之后的回调
 						// 获取章节的id，再根据id来获取章节的内容
 						Chapter_id = data.chapters[1].chapter_id;
+						ChapterTotal = data.chapters.length;
 						callback && callback();
 					},'json');
 				}
 				// 定义获取章节内容的函数
-				var getCurChapterContent = function(chapter_id,data){
+				var getCurChapterContent = function(chapter_id,callback){
 					$.get('data/data' + chapter_id + '.json',function(data){
 						// 判断服务器的状态
 						if(data.result == 0){
@@ -189,18 +190,43 @@
 						}
 					},'json')
 				}
+				var prevChapter = function(UIcallback){
+					chapter_id = parseInt(Chapter_id,10);
+					if(Chapter_id == 0){
+						return;
+					}
+					Chapter_id -= 1;
+					getCurChapterContent(Chapter_id,UIcallback);
+				}
+				var nextChapter = function(UIcallback){
+					chapter_id = parseInt(Chapter_id,10);
+					if(Chapter_id == ChapterTotal){
+						return;
+					}
+					Chapter_id += 1;
+					getCurChapterContent(Chapter_id,UIcallback);
+				}
+				return {
+					init:init,
+					prevChapter:prevChapter,
+					nextChapter:nextChapter
+				}
 			}
 
-			function ReaderBaseFrame(){
+			function ReaderBaseFrame(container){
 				//todo 渲染基本的UI结构
+				// 根据数据层得到的数据结构来进行渲染
 				function parseChapterData(jsonData){
+					// 首先对数据进行序列化，构造由字符串描述的JS值或对象，提供reviver函数用以在返回之前对所得到的对象执行变换，是可选参数
 					var jsonObj = JSON.parse(jsonData);
+					// 没有使用模板隐形，将数据结构解析到HTML中，格式与上面一致
 					var html = '<h4>' + jsonObj.t + '</h4>';
 					for(var i = 0;i < jsonObj.p.length;i++){
 						html += "<p>" +jsonObj.p[i] + '</p>';
 					}
 					return html;
 				}
+				// 将解析好的HTML文件放入容器中
 				return function(data){
 					container.html(parseChapterData(data));
 				}
@@ -243,12 +269,20 @@
 					initFontSize -= 1;
 					RootContainer.css('font-size',initFontSize);
 					Util.StorageSetter('font_size',initFontSize);
-				})
+				});
                 Win.scroll(function(){
                 	Dom.bottom_nav.hide();
                 	Dom.top_nav.hide();
                 	Dom.font_container.hide();
-                })
+                });
+                $("#prev_button").click(function(){
+                	//获得章节的翻页数据->把数据拿出来渲染
+                	readerModel.prevCapter();
+                });
+                $("next_button").click(function(){
+                	readerModel.nextChapter(function(data){readerUI(data)});
+                });
+
             }
 			main();
 		})();
